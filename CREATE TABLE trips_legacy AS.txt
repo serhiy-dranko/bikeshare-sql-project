@@ -1,0 +1,75 @@
+CREATE TABLE trips_legacy AS
+SELECT
+    "Bike number"        AS bike_id,
+    "Start date"          AS start_time,
+    "End date"            AS end_time,
+    "Start station"       AS start_station,
+    "End station"         AS end_station,
+    "Member type"         AS rider_type,
+    CAST(NULL AS VARCHAR) AS bike_type
+FROM read_csv_auto(
+    [
+        'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2019*.csv',
+        'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202001-capitalbikeshare-tripdata.csv',
+        'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202002-capitalbikeshare-tripdata.csv',
+        'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202003-capitalbikeshare-tripdata.csv',
+        'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202004-capitalbikeshare-tripdata.csv'
+    ],
+    union_by_name = true
+);
+
+
+
+
+
+
+CREATE TABLE trips_modern AS
+SELECT
+    ride_id              AS bike_id,
+    started_at           AS start_time,
+    ended_at             AS end_time,
+    start_station_name   AS start_station,
+    end_station_name     AS end_station,
+    member_casual        AS rider_type,
+    rideable_type        AS bike_type
+FROM read_csv_auto(
+  [
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202005*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202006*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202007*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202008*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202009*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202010*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202011*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\202012*.csv', 
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2021*.csv', 
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2022*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2023*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2024*.csv', 
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2025*.csv',
+      'C:\Users\User\Documents\Dataskools\week_9\day_1\Data\2026*.csv'],
+    union_by_name = true
+);
+
+
+
+SELECT 
+  tr.start_station_id                    AS ID_station,
+  tr.start_station                       AS Station_name,
+  COUNT(DISTINCT tr.start_station_id)    AS Unique_count
+  FROM trips                             AS tr
+  GROUP BY ID_station,Station_name
+UNION ALL
+SELECT
+  st.short_name                          AS ID_station,
+  st.name                                AS Station_name,
+  COUNT(DISTINCT st.short_name)          AS Unique_count
+  FROM station                           AS st
+  GROUP BY ID_station,Station_name
+  ;
+
+
+
+
+
+

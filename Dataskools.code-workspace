@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../Github/Dataskools"
+		},
+		{
+			"name": "german-retail-etl",
+			"path": "../../../../../german-retail-etl"
+		}
+	],
+	"settings": {}
+}
