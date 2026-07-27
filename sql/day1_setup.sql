@@ -70,5 +70,21 @@ UNION ALL
   SELECT * 
   FROM trips_modern;
 
+--- It creates a table called "station" that took data from.
+---  "name": "station_information",
+---  "url": "https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_information.json"
+
+CREATE OR REPLACE TABLE station AS
+SELECT 
+    station.station_id,
+    station.name,
+    station.lat,
+    station.lon,
+    station.capacity
+FROM (
+    SELECT unnest(data.stations) AS station
+    FROM read_json_auto('https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_information.json')
+);
+
 -- Reporter : Serhiy Dranko
 -- Date : 2026-07-20
