@@ -1,6 +1,6 @@
 ## Reflection Questions
 
-c1. `GROUP BY` on its own, with no aggregate function, just returns distinct values. Why does adding `COUNT(*)`, `SUM()`, or `AVG()` change what each row in the result actually represents?
+1. `GROUP BY` on its own, with no aggregate function, just returns distinct values. Why does adding `COUNT(*)`, `SUM()`, or `AVG()` change what each row in the result actually represents?
 
    Without an aggregate, GROUP BY just deduplicates rows, so each row still represents a single raw value with no computation behind it. Adding COUNT(*), SUM(), or AVG() turns each row into a summary of every row that shared that group's value, so it now represents a calculation across many original rows, not one of them.
 
