@@ -81,13 +81,6 @@ Select
          ON r2.rider_type=r.rider_type AND r2.Year = '2026'
 ;
 
--- 6. Try writing a WITH clause with no trailing SELECT at all, just to see what error you get — useful for recognizing that error quickly later.
---- Parser Error: syntax error at or near ";" LINE 7:   GROUP BY rider_type); ^LINE 7:   GROUP BY rider_type);
-                             
--- 7. Write one or two sentences on how the CTE version of Task 1 compares to reading the original scalar subquery. Be specific about what got easier, not just "it's cleaner."
---- The scalar subquery buries the per-neighborhood average inside the WHERE clause of the outer query, so to know what it's comparing you have to trace (SELECT AVG(...) WHERE nh.neighborhood = n.neighborhood) 
---- back to its own logic each time you read that line. The CTE version pulls that same calculation out into neighborhood_avg_raides, so you can run SELECT * FROM neighborhood_avg_raides on its own, 
---- see the actual average per neighborhood as real rows, and trust it going into the join — you're checking a value, not re-deriving a formula in your head.
 
 --- BLOCK 2
 
@@ -225,10 +218,6 @@ ORDER BY Total_rides DESC;
 
 -- Result 55 rows 4 columns. The same result Mesier data.
 
--- 5. Identify a case where using multiple CTEs is actually unnecessary — where a single GROUP BY with a JOIN would answer the same question just as clearly. Write that simpler version.
-
--- 6. Write a short note on how you'd decide, going forward, whether a question needs multiple named CTEs or just one straightforward query.
---- All wich conected with Tota averege or SUM by group calculations in detatailed infos
 
 --- BLOCK 3
 
@@ -362,9 +351,6 @@ FROM above_avg_stations
 ORDER BY Neighborhood_avg_rides DESC;
 
 -- Result 348 rows 4 columns.
-
--- 3. Compare the chained-CTE version against your Day 1 correlated subquery version of the same question. Which one would you trust more at a glance, six months from now?
---- CTE version give us more info and we can combine averege rides per Neighborhood and 1st stations in one query.
   
 -- 4. Add a fifth stage to the chain that ranks the qualifying stations from Task 2 by how far above their neighborhood's average they are.
 
@@ -450,9 +436,6 @@ ORDER BY Neighborhood, rank_in_neighborhood;
 
 -- Result 348 rows 7 columns.
 
--- 5. Deliberately break the chain by referencing a CTE before it's defined (reorder your WITH clauses) and read the error message carefully — this is a mistake worth recognizing quickly.
-
---- Catalog Error: Table with name above_avg_stations does not exist!
 
 -- 6. Take one chained CTE and add a one-line comment above each stage explaining what that stage does, as if leaving it for someone else on the team.
 
@@ -475,20 +458,7 @@ Select                                              -- selecting data from the C
          ON r2.rider_type=r.rider_type AND r2.Year = '2026'
 ;
 
--- 7. Time roughly how long it took you to build this chain versus how long Day 1's equivalent correlated subquery took to get right. Note which felt more like debugging and which felt more like building.
-
---- Correlated subquery: usually written faster "the first time", because it is one block of logic - but when something goes wrong (wrong numbers, duplicates), it is harder to understand where the problem is, because there are no intermediate check points. This often feels like blind debugging.
-
---- Chained CTE: longer to write at once (more named stages), but each step can be SELECT * FROM <cte> and checked in isolation. This feels more like building brick by brick its slower at the start, faster when fixing errors.
-
 --- BLOCK 4
-
--- 1.Design a report answering: "For each neighborhood, what's the busiest station, and how much busier is it than that neighborhood's average station?" Sketch the stages you'll need before writing any SQL.
-
---- Station_totals: one row per station, with its neighborhood and its total ride count. This is the raw material everything else builds on.
---- Neighborhood_averages: one row per neighborhood, with the average total_rides across its stations (computed from Station_totals, not from trips again).
---- Busiest_per_neighborhood: one row per neighborhood — just the single station with the max total_rides (computed from Station_totals, using a ranking function).
---- Final SELECT: join busiest station to neighborhood average and compute the difference.
 
 -- 2.Build the first CTE stage: per-station totals joined to neighborhood.
 
@@ -575,8 +545,6 @@ LEFT JOIN neighborhood_averages                                    AS a
 ---------------------------------------------------------------------------------------- 
 WHERE b.neighborhood IS NOT NULL
 ORDER BY rides_above_average DESC; --sort results decending by difference between neighborhoods average and total station rides.
-
--- 6.Review the finished query as a whole: could a teammate who only read the CTE names, without reading the SQL inside them, guess roughly what the query does? If not, rename anything that isn't clear.
 
 --- Result 42 rows 8 columns. EXCLUDE null neighborhood. Add comments
 
