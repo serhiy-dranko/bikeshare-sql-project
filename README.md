@@ -44,6 +44,14 @@ This project was built in DuckDB, using Beekeeper Studio as the SQL client. To r
   ### day4_joins_summary.sql
   Joins trips to stations, builds stations_summary, and surfaces the unmatched-station data issue.
 
+### Week 2:
+
+  ### day1_subqueries.sql 
+  Introduces subqueries as SELECT statement nested inside another SQL statement.
+  ### day2_cte.sql 
+  Introduces CTE as temporary result set that exists only for the duration of one query.
+  
+
 ## Key Findings
 
   Switching from Power BI to a DuckDB/SQL workflow cut load-and-aggregate time from hours to under a minute for the full seven-year dataset.
