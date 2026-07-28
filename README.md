@@ -33,6 +33,8 @@ This project was built in DuckDB, using Beekeeper Studio as the SQL client. To r
 
 ## What's in sql/
 
+### Week 1:
+
   ### day1_setup.sql 
   Loads and standardizes legacy vs. current schema files into trips_legacy / trips_modern, combines into trips.
   ### day2_filtering.sql
