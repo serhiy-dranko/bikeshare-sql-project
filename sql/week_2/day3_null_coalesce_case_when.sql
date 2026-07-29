@@ -415,8 +415,105 @@ FROM stations_summary
         ORDER BY capacity_tier, duration_bucket;
 
 --- BLOCK 4 
+--- BLOCK 4
+-- 1. Build a CTE that joins trips to stations with a LEFT JOIN, and applies COALESCE(neighborhood, 'Unknown') and COALESCE(capacity, 0) in the same step.
 
+WITH capacity AS(
+SELECT
+  s.neighborhood,
+  s.short_name,
+  s.name,
+  s.lat,
+  s.lon,
+  s.capacity
+  FROM station AS s)
 
+SELECT
+                COALESCE(s.neighborhood,'Unknown')                                                           AS neighborhood,
+                t.start_station_id                                                                           AS ID_station,
+                t.start_station                                                                              AS station_name,
+                COUNT(t.bike_id)                                                                             AS total_rides, 
+                ROUND(AVG(date_part('epoch', t.end_time - t.start_time) / 60),0)                             AS average_ride_duration_min, 
+                COALESCE(s.capacity,'0')                                                                     AS station_capacity
+                                
+              FROM trips                                                                                     AS t 
+            
+              LEFT JOIN capacity                                                                             AS s
+                ON t.start_station_id = s.short_name
+                
+              GROUP BY ALL
+              HAVING station_capacity = 0
+              ORDER BY total_rides DESC;
+
+-- Result 65 rows 6 columns.
+
+-- 2. Build a second CTE on top of the first that adds a CASE WHEN column flagging each row as 'Matched' or 'Unmatched', based on whether the original stations join produced a real value or a default.
+
+WITH capacity AS(
+SELECT
+  s.neighborhood,
+  s.short_name,
+  s.name,
+  s.lat,
+  s.lon,
+  s.capacity
+  FROM station AS s)
+
+SELECT
+                CASE
+                 WHEN s.short_name IS NULL THEN 'Unmatched' ELSE 'Matched' END                               AS flag_column,
+                COALESCE(s.neighborhood,'Unknown')                                                           AS neighborhood,
+                t.start_station_id                                                                           AS ID_station,
+                t.start_station                                                                              AS station_name,
+                COUNT(t.bike_id)                                                                             AS total_rides, 
+                ROUND(AVG(date_part('epoch', t.end_time - t.start_time) / 60),0)                             AS average_ride_duration_min, 
+                COALESCE(s.capacity,'0')                                                                     AS station_capacity
+                                                
+              FROM trips                                                                                     AS t 
+            
+              LEFT JOIN capacity                                                                             AS s
+                ON t.start_station_id = s.short_name
+                     
+              GROUP BY ALL
+              
+              HAVING flag_column = 'Unmatched'
+              ORDER BY total_rides DESC;
+
+-- Result 65 rows 7 columns.
+
+-- 3.Use the two CTEs together to report total rides and average duration, split by the 'Matched'/'Unmatched' flag — this quantifies, precisely, how much of your data the station gap actually affects.
+
+WITH capacity AS(
+SELECT
+  s.neighborhood,
+  s.short_name,
+  s.name,
+  s.lat,
+  s.lon,
+  s.capacity
+  FROM station AS s)
+
+ SELECT
+                CASE
+                 WHEN s.short_name IS NULL THEN 'Unmatched' ELSE 'Matched' END                               AS flag_column,
+                COALESCE(s.neighborhood,'Unknown')                                                           AS neighborhood,
+                COUNT(t.bike_id)                                                                             AS total_rides, 
+                ROUND(AVG(date_part('epoch', t.end_time - t.start_time) / 60),0)                             AS average_ride_duration_min 
+                
+                                
+              FROM trips                                                                                     AS t 
+            
+              LEFT JOIN capacity                                                                             AS s
+                ON t.start_station_id = s.short_name
+                
+              GROUP BY flag_column, neighborhood
+              
+              ORDER BY total_rides DESC;
+
+-- Result 43 rows 4 columns.
+
+-- 4.Decide whether stations_summary from Week 1 should be rebuilt using this cleaner approach. Rebuild it if so, using CREATE TABLE stations_summary AS SELECT ... from the chained CTEs.
+--- Probobly COALESCE(s.capacity,'0') affect to averege per Neighborhood so better use null for ignore this in calculations.
 
 --- BLOCK 5 answears saved in markdowns in notes
 -- Reporter : Serhiy Dranko
