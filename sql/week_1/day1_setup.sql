@@ -64,11 +64,53 @@ FROM read_csv_auto(
 --- It creates a table called "trips" that combines data from two different sources: trips_legacy and trips_modern.
 
 CREATE OR REPLACE TABLE trips AS
-  SELECT * 
+  SELECT
+    bike_id,
+    start_time,
+    end_time,
+    start_station_id,
+    start_station,
+    end_station_id,
+    end_station,
+    rider_type,
+    bike_type,
+    ROUND(SUM(date_part('epoch', end_time - start_time) / 60),2) AS duration -- add duration in munutes
   FROM trips_legacy
+  GROUP BY 
+    bike_id,
+    start_time,
+    end_time,
+    start_station_id,
+    start_station,
+    end_station_id,
+    end_station,
+    rider_type,
+    bike_type
+  
 UNION ALL
-  SELECT * 
-  FROM trips_modern;
+  SELECT 
+    bike_id,
+    start_time,
+    end_time,
+    start_station_id,
+    start_station,
+    end_station_id,
+    end_station,
+    rider_type,
+    bike_type,
+    ROUND(SUM(date_part('epoch', end_time - start_time) / 60),2) AS duration -- add duration in munutes
+  FROM trips_modern
+  GROUP BY 
+    bike_id,
+    start_time,
+    end_time,
+    start_station_id,
+    start_station,
+    end_station_id,
+    end_station,
+    rider_type,
+    bike_type
+   ;
 
 --- It creates a table called "station" that took data from.
 ---  "name": "station_information",
@@ -121,7 +163,7 @@ CREATE OR REPLACE TABLE stations_summary AS
                 ROUND((SUM(CASE WHEN t.rider_type = 'casual' THEN 1 ELSE 0 END) / COUNT(t.bike_id) *100),0)  AS casual_rides_percentage, -- count casual rider's % to Total
                 ROUND((SUM(CASE WHEN t.rider_type = 'member' THEN 1 ELSE 0 END) / COUNT(t.bike_id) *100),0)  AS member_rides_percentage, -- count member rider's % to Total
                 ROUND(AVG(date_part('epoch', t.end_time - t.start_time) / 60),0)                             AS average_ride_duration_min, -- calculate average duration
-                AVG(COALESCE(s.capacity,'0'))                                                                AS station_capacity -- show actual capacity
+                AVG(s.capacity,'0')                                                                          AS station_capacity -- show actual capacity
                                 
               FROM trips                                                                                     AS t 
               -- Connecting to the Capacity data ---
@@ -147,4 +189,4 @@ CREATE OR REPLACE TABLE stations_summary AS
 
 -- Reporter : Serhiy Dranko
 -- Date : 2026-07-20
--- Update : 2026-07-28
+-- Update : 2026-07-29
