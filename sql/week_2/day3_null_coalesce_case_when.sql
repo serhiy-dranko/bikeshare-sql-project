@@ -414,9 +414,11 @@ FROM stations_summary
         GROUP BY ALL
         ORDER BY capacity_tier, duration_bucket;
 
---- BLOCK 4 answears saved in markdowns in notes
+--- BLOCK 4 
 
 
+
+--- BLOCK 5 answears saved in markdowns in notes
 -- Reporter : Serhiy Dranko
 -- Date : 2026-07-29
 
