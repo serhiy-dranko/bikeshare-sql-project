@@ -413,8 +413,7 @@ FROM stations_summary
                ON s.short_name = t.start_station_id
         GROUP BY ALL
         ORDER BY capacity_tier, duration_bucket;
-
---- BLOCK 4 
+ 
 --- BLOCK 4
 -- 1. Build a CTE that joins trips to stations with a LEFT JOIN, and applies COALESCE(neighborhood, 'Unknown') and COALESCE(capacity, 0) in the same step.
 
