@@ -505,10 +505,89 @@ ORDER BY ds.calendar_date_raw;
 --    We do not have empty days so it's a real anomaly.
 -- 7. Narrow your remaining flagged list down to two or three days or periods that seem like genuine, worth-investigating anomalies — these carry into Block 5.
        -- 29/03/2025 and 30/03/2025 I think it's a good example. Because bouth of them in one month.
---- BLOCK 5
 
+--- BLOCK 5: Mini-Project
 
+-- 1. For each of your two or three flagged periods from Block 4, check whether it lines up with a data gap or schema boundary you've already documented.
 
+WITH date_range AS (
+  SELECT UNNEST(generate_series(
+    (SELECT MIN(DATE_TRUNC('day', start_time)) FROM trips),
+    (SELECT MAX(DATE_TRUNC('day', start_time)) FROM trips),
+    INTERVAL '1 day'
+  ))::DATE AS calendar_date
+),
+daily_rides AS (
+  SELECT DATE_TRUNC('day', start_time)::DATE   AS ride_date,
+         COUNT(bike_id)                        AS total_rides
+  FROM trips
+  GROUP BY DATE_TRUNC('day', start_time)::DATE
+),
+daily_series AS (
+  SELECT 
+    strftime(dr.calendar_date, '%d/%m/%Y')     AS calendar_date,
+    dr.calendar_date                           AS calendar_date_raw,
+    strftime(dr.calendar_date, '%m')           AS month,
+    COALESCE(d.total_rides, 0)                 AS total_rides
+  FROM date_range                              AS dr
+  LEFT JOIN daily_rides                        AS d
+         ON dr.calendar_date = d.ride_date
+),
+global_stats AS (
+  SELECT 
+    AVG(total_rides)                           AS global_mean,
+    STDDEV(total_rides)                        AS global_stddev
+  FROM daily_series
+),
+monthly_stats AS (
+  SELECT 
+    month,
+    AVG(total_rides)                           AS month_mean,
+    STDDEV(total_rides)                        AS month_stddev
+  FROM daily_series
+  GROUP BY month
+)
+SELECT
+  ds.calendar_date,
+  ds.month,
+  ds.total_rides,
+
+  ROUND(g.global_mean, 1)                      AS global_mean,
+  ROUND(g.global_stddev, 1)                    AS global_stddev,
+  ROUND((ds.total_rides - g.global_mean) 
+    / NULLIF(g.global_stddev, 0), 2)           AS z_score_global,
+
+  ROUND(m.month_mean, 1)                       AS month_mean,
+  ROUND(m.month_stddev, 1)                     AS month_stddev,
+  ROUND((ds.total_rides - m.month_mean) 
+    / NULLIF(m.month_stddev, 0), 2)            AS z_score_monthly,
+
+  CASE
+    WHEN ABS((ds.total_rides - m.month_mean)
+      / NULLIF(m.month_stddev, 0)) > 3        THEN 'Extreme'
+    WHEN ABS((ds.total_rides - m.month_mean)
+      / NULLIF(m.month_stddev, 0)) > 2        THEN 'Notable'
+    ELSE 'Normal'
+  END                                          AS anomaly_flag
+
+FROM daily_series                              AS ds
+CROSS JOIN global_stats                        AS g
+JOIN monthly_stats                             AS m
+
+  ON ds.month = m.month
+WHERE ds.calendar_date_raw BETWEEN '2025-03-22' AND '2025-04-05'
+ORDER BY ds.calendar_date_raw;
+
+-- 2. For each remaining period, check whether the change persisted over multiple days or weeks, or reverted immediately — pull the surrounding week of data to see.
+-- Spike for 2 days, then immediate return looks like  a classic weekend event March 29 and 30, 2025, were Saturday and Sunday, not a structural shift.
+
+-- 3. If your database includes the joined NOAA weather data mentioned in the course description, check whether any flagged period lines up with a significant weather event. If you don't have weather data loaded, note that as a limitation of this analysis rather than skipping the question.
+---   That is a limitation of this analysis. we do not load NOAA weather data in SQL project.
+
+-- 4. For any period that still looks like a genuine, real-world event rather than a data or weather artifact, research briefly what was happening in that specific window that could plausibly explain a shift in bikeshare ridership.
+--    Maybe it caused by The 2025 National Cherry Blossom Festival in Washington, D.C. Peak Bloom: March 28 – March 31, 2025. To konfirm this theory we need to look deeper in stations data near buy location of the Festival.
+
+--- Report Save as `notes/week2_trend_analysis.md`
 --- BLOCK 6 answears saved in markdowns in notes
 -- Reporter : Serhiy Dranko
 -- Date : 2026-07-30
