@@ -465,3 +465,6 @@ JOIN monthly_stats                             AS m
   ON ds.month = m.month
 WHERE ds.calendar_date_raw BETWEEN '2025-03-22' AND '2025-04-05'
 ORDER BY ds.calendar_date_raw;
+
+-- Reporter : Serhiy Dranko
+-- Date : 2026-07-31
