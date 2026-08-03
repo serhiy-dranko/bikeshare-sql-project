@@ -31,7 +31,7 @@ WITH average_rides_per_neighborhood AS (
                 s.longitude                                                     AS Longitude,
                 SUM(s.total_rides)                                              AS total_rides
             FROM stations_summary                                               AS s
-            LEFT JOIN station_and_neighborhoods                                 AS n
+            LEFT JOIN station                                                   AS n
                    ON n.short_name = s.ID_Station
             GROUP BY n.neighborhood, s.ID_Station, s.station_name, s.latitude, s.longitude
   
