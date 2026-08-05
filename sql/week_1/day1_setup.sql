@@ -187,6 +187,47 @@ CREATE OR REPLACE TABLE stations_summary AS
               -- Sort by quantity of rides --   
               ORDER BY total_rides DESC;
 
+--- It creates a table called "hourly_weather". Table where we have Summury by station with hourly temperature and precipitation.
+
+CREATE OR REPLACE TABLE hourly_weather AS
+
+WITH weather_data AS (
+
+SELECT
+    strftime(DATE, '%d/%m/%Y %H:00:00') AS Datetime,
+    DATE_TRUNC('day', "DATE")           AS Date,
+    Hour,
+    STATION,
+    Station_name,
+    LATITUDE,
+    LONGITUDE,
+    temperature,
+    COALESCE(precipitation,0) AS precipitation
+FROM read_csv_auto(
+    'C:/Users/User/Documents/Dataskools/week_10/day_1/weather_data/GHCNh_*.psv',
+    delim = '|',
+    header = true,
+    union_by_name = true
+)
+WHERE temperature_Report_Type IN ('FM16','FM15')
+)
+  
+ SELECT
+    Datetime,
+    Date,
+    Hour,
+    STATION,
+    Station_name,
+    LATITUDE,
+    LONGITUDE,
+    MAX(temperature)    AS temperature,
+    MAX(precipitation)  AS precipitation
+  
+  FROM weather_data
+GROUP BY Datetime, Date, Hour, STATION, Station_name, LATITUDE, LONGITUDE
+ORDER BY Date ASC;
+
+
 -- Reporter : Serhiy Dranko
 -- Date : 2026-07-20
--- Update : 2026-07-29
+-- Update : 2026-08-04
