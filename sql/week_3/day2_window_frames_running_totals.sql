@@ -1,5 +1,47 @@
 -- BLOCK 1:
 
+-- Ranking by distance to weather stations
+WITH weather_stations AS (
+    SELECT DISTINCT
+        STATION       AS weather_station_id,
+        Station_name  AS weather_station,
+        LATITUDE      AS w_lat,
+        LONGITUDE     AS w_lon
+    FROM hourly_weather
+    WHERE LATITUDE IS NOT NULL AND LONGITUDE IS NOT NULL
+),
+
+distances AS (
+    SELECT
+        s.short_name                        AS station_id,
+        s.name                              AS station_name,
+        s.lat                               AS b_lat,
+        s.lon                               AS b_lon,
+        w.weather_station_id,
+        w.weather_station,
+        w.w_lat,
+        w.w_lon,
+        -- Haversine distance in kilometers
+        2 * 6371 * ASIN(SQRT(
+            POWER(SIN(RADIANS(w.w_lat - s.lat) / 2), 2) +
+            COS(RADIANS(s.lat)) * COS(RADIANS(w.w_lat)) *
+            POWER(SIN(RADIANS(w.w_lon - s.lon) / 2), 2)
+        )) AS distance_km
+    FROM station AS s
+    CROSS JOIN weather_stations AS w
+),
+
+ranked AS (
+    SELECT *,
+        RANK() OVER (
+            PARTITION BY station_id
+            ORDER BY distance_km ASC
+        ) AS rn
+    FROM distances
+)
+SELECT * FROM ranked
+Where rn=1
+
 -- 1. Build a running total of daily rides using `SUM(total_rides) OVER (ORDER BY calendar_date)` with no explicit frame, and confirm the last row's value equals the total ride count across the whole dataset.
 
 WITH date_range AS (
